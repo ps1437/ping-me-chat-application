@@ -23,8 +23,8 @@ nextApp.prepare().then(() => {
   const waitingUsers = new Set();
 
   io.on("connection", (socket) => {
-    console.log(`User connected: ${socket.id}`);
     waitingUsers.add(socket);
+      io.emit("user_count", { count: io.engine.clientsCount });
 
     if (waitingUsers.size >= 2) {
       const [user1, user2] = Array.from(waitingUsers).slice(0, 2);
@@ -47,8 +47,8 @@ nextApp.prepare().then(() => {
     });
 
     socket.on("disconnect", () => {
-      console.log(`User disconnected: ${socket.id}`);
       waitingUsers.delete(socket);
+      io.emit("user_count", { count: io.engine.clientsCount });
 
       if (socket.data?.roomId) {
         socket.to(socket.data.roomId).emit("partner_left");
@@ -66,9 +66,10 @@ nextApp.prepare().then(() => {
     });
   });
 
-  expressApp.all("*", (req, res) => handle(req, res));
+  expressApp.use((req, res) => handle(req, res));
 
   server.listen(PORT, () => {
     console.log(` Server running at http://localhost:${PORT}`);
   });
 });
+

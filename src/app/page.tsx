@@ -14,7 +14,8 @@ export default function Home() {
   const router = useRouter();
   const { darkMode } = useTheme();
 
-  const handleJoin = () => {
+  const handleJoin = (event:any) => {
+    event.preventDefault();
     if (name.trim()) {
       const encodedName = encodeURIComponent(name);
       router.push(`/chat?name=${encodedName}`);
@@ -30,7 +31,6 @@ export default function Home() {
       }`}
     >
       <div className="flex flex-col-reverse md:flex-row items-center gap-8 max-w-5xl w-full justify-center">
-        {/* Animation */}
         <div className="w-full md:w-1/2 flex justify-center">
           <Lottie
             animationData={chatAnimation}
@@ -39,14 +39,15 @@ export default function Home() {
           />
         </div>
 
-        {/* Form */}
-        <div
+<form   onSubmit={handleJoin}
+
           className={`rounded-2xl shadow-xl p-8 w-full md:w-1/2 space-y-4 ${
             darkMode ? "bg-gray-800" : "bg-white"
           }`}
         >
           <div className="flex justify-between items-center">
             <h1 className="text-3xl font-bold">Welcome to PingMe 💬</h1>
+            
             <DarkButton />
           </div>
 
@@ -55,11 +56,12 @@ export default function Home() {
             value={name}
             onChange={(e) => setName(e.target.value)}
           />
-          <Button className="w-full" onClick={handleJoin}>
+          <Button className="w-full" type="submit" >
             Join Chat
           </Button>
-        </div>
+       </form>
       </div>
+      
     </main>
   );
 }

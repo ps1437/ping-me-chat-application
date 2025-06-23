@@ -7,7 +7,7 @@ export interface Message {
 }
 
 const SOCKET_URL = typeof window !== "undefined"
-  ? process.env.NEXT_PUBLIC_SOCKET_URL || "http://localhost:4000"
+  ? process.env.NEXT_PUBLIC_SOCKET_URL || "http://localhost:3000"
   : "";
 
 export function useChatSocket(username: string) {
@@ -15,6 +15,7 @@ export function useChatSocket(username: string) {
   const [roomId, setRoomId] = useState<string | null>(null);
   const [partner, setPartner] = useState<string | null>(null);
   const [isWaiting, setIsWaiting] = useState(true);
+  const [userCount, setUserCount] = useState(0);
 
   const socketRef = useRef<Socket | null>(null);
 
@@ -23,6 +24,10 @@ export function useChatSocket(username: string) {
     socketRef.current = socket;
 
     socket.on("connect", () => {
+    });
+
+     socket.on("user_count", ({ count }) => {
+      setUserCount(count);
     });
 
     socket.on("paired", ({ roomId, partnerId }) => {
@@ -82,6 +87,7 @@ export function useChatSocket(username: string) {
     isWaiting,
     skipUser,
     partnerId: partner,
+    userCount,
     roomId,
   };
 }
