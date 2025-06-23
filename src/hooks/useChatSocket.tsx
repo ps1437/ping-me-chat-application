@@ -7,7 +7,7 @@ export interface Message {
 }
 
 const SOCKET_URL = typeof window !== "undefined"
-  ? process.env.NEXT_PUBLIC_SOCKET_URL || "http://localhost:3000"
+  ? process.env.NEXT_PUBLIC_SOCKET_URL || "https://ping-me-chat-application.onrender.com"
   : "";
 
 export function useChatSocket(username: string) {
@@ -20,7 +20,9 @@ export function useChatSocket(username: string) {
   const socketRef = useRef<Socket | null>(null);
 
   const connectSocket = () => {
-    const socket = io(SOCKET_URL);
+    const socket = io(undefined, {
+  transports: ["websocket"],
+});
     socketRef.current = socket;
 
     socket.on("connect", () => {
