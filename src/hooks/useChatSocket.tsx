@@ -7,7 +7,7 @@ export interface Message {
 }
 
 const SOCKET_URL = typeof window !== "undefined"
-  ? process.env.NEXT_PUBLIC_SOCKET_URL || "http://localhost:3000"
+  ? process.env.NEXT_PUBLIC_SOCKET_URL || "http://localhost:4000"
   : "";
 
 export function useChatSocket(username: string) {

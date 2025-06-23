@@ -20,20 +20,23 @@ nextApp.prepare().then(() => {
     },
   });
 
-  const waitingUsers = [];
+  const waitingUsers = new Set();
 
   io.on("connection", (socket) => {
-    waitingUsers.push(socket);
+    console.log(`User connected: ${socket.id}`);
+    waitingUsers.add(socket);
 
-    if (waitingUsers.length >= 2) {
-      const user1 = waitingUsers.shift();
-      const user2 = waitingUsers.shift();
+    if (waitingUsers.size >= 2) {
+      const [user1, user2] = Array.from(waitingUsers).slice(0, 2);
+      waitingUsers.delete(user1);
+      waitingUsers.delete(user2);
+
       const roomId = `${user1.id}-${user2.id}`;
       user1.join(roomId);
       user2.join(roomId);
 
-      user1.roomId = roomId;
-      user2.roomId = roomId;
+      user1.data = { roomId, partnerId: user2.id };
+      user2.data = { roomId, partnerId: user1.id };
 
       user1.emit("paired", { roomId, partnerId: user2.id });
       user2.emit("paired", { roomId, partnerId: user1.id });
@@ -44,16 +47,28 @@ nextApp.prepare().then(() => {
     });
 
     socket.on("disconnect", () => {
-      const idx = waitingUsers.findIndex((s) => s.id === socket.id);
-      if (idx !== -1) waitingUsers.splice(idx, 1);
-      if (socket.roomId) socket.to(socket.roomId).emit("partner_left");
+      console.log(`User disconnected: ${socket.id}`);
+      waitingUsers.delete(socket);
+
+      if (socket.data?.roomId) {
+        socket.to(socket.data.roomId).emit("partner_left");
+        const socketsInRoom = io.sockets.adapter.rooms.get(socket.data.roomId);
+        if (socketsInRoom) {
+          socketsInRoom.forEach((id) => {
+            const partner = io.sockets.sockets.get(id);
+            if (partner) {
+              partner.leave(socket.data.roomId);
+              delete partner.data;
+            }
+          });
+        }
+      }
     });
   });
 
-  // ✅ This works better with App Router and avoids `path-to-regexp` issues
-  expressApp.use((req, res) => handle(req, res));
+  expressApp.all("*", (req, res) => handle(req, res));
 
   server.listen(PORT, () => {
-    console.log(`Server running at http://localhost:${PORT}`);
+    console.log(` Server running at http://localhost:${PORT}`);
   });
 });
